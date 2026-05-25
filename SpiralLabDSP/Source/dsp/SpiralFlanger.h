@@ -1,3 +1,13 @@
+/*
+    SpiralLab DSP Library
+    https://digitalmedia.ok.ubc.ca/spiral/
+ 
+    This file is based on example code from:
+    Reiss, J.D. & McPherson, A.P.
+    "Audio Effects: Theory, Implementation and Application", 2nd ed., 2026.
+    (Flanger example from Chapter 3: Delay Line Effects)
+*/
+
 #pragma once
 #include <vector>
 #include <cmath>

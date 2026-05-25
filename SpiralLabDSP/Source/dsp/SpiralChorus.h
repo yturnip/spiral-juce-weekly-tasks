@@ -1,3 +1,12 @@
+/*
+    SpiralLab DSP Library
+    https://digitalmedia.ok.ubc.ca/spiral/
+ 
+    Implementation by Yohanes Turnip,
+    inspired by flanger examples in Reiss & McPherson,
+    "Audio Effects: Theory, Implementation and Application", 2nd ed.
+*/
+
 #pragma once
 #include <vector>
 #include <cmath>
