@@ -4,10 +4,15 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="hliwcb" name="SpiralLabDSP">
     <GROUP id="{90535237-048C-6F8F-2296-75866541C632}" name="dsp">
+      <FILE id="iOB7rd" name="SpiralAllpass.h" compile="0" resource="0" file="Source/dsp/SpiralAllpass.h"/>
+      <FILE id="EieN0W" name="SpiralBiquad.h" compile="0" resource="0" file="Source/dsp/SpiralBiquad.h"/>
       <FILE id="Ip48VS" name="SpiralChorus.h" compile="0" resource="0" file="Source/dsp/SpiralChorus.h"/>
       <FILE id="RnbeeQ" name="SpiralDelay.h" compile="0" resource="0" file="Source/dsp/SpiralDelay.h"/>
       <FILE id="SDy0sf" name="SpiralFlanger.h" compile="0" resource="0" file="Source/dsp/SpiralFlanger.h"/>
+      <FILE id="H3prBz" name="SpiralOnePoleLowPass.h" compile="0" resource="0"
+            file="Source/dsp/SpiralOnePoleLowPass.h"/>
       <FILE id="s7SXxr" name="SpiralVibrato.h" compile="0" resource="0" file="Source/dsp/SpiralVibrato.h"/>
+      <FILE id="MN8hvw" name="SpiralWahWah.h" compile="0" resource="0" file="Source/dsp/SpiralWahWah.h"/>
     </GROUP>
     <GROUP id="{3234F358-E00F-93A6-BC28-44E85781E8AC}" name="Source">
       <FILE id="ZvgcIW" name="PluginProcessor.cpp" compile="1" resource="0"

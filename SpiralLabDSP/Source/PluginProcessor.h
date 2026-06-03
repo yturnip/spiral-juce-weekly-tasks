@@ -13,6 +13,10 @@
 #include "dsp/SpiralVibrato.h"
 #include "dsp/SpiralFlanger.h"
 #include "dsp/SpiralChorus.h"
+#include "dsp/SpiralOnePoleLowPass.h"
+#include "dsp/SpiralBiquad.h"
+#include "dsp/SpiralAllpass.h"
+#include "dsp/SpiralWahWah.h"
 
 //==============================================================================
 /**
@@ -56,15 +60,14 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+   
+    juce::AudioProcessorValueTreeState apvts;
+    
+    static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
 private:
-    SpiralDelay   delay;
-    SpiralVibrato vibrato;
-    SpiralFlanger flanger;
-    SpiralChorus  chorus;
-
-    enum class EffectType { Delay, Vibrato, Flanger, Chorus };
-    EffectType currentEffect = EffectType::Chorus;
+    SpiralWahWah wah;
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpiralLabDSPAudioProcessor)
 };
