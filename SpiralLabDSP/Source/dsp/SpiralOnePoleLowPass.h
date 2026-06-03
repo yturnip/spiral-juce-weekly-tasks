@@ -1,10 +1,12 @@
 /*
     SpiralLab DSP Library
     https://digitalmedia.ok.ubc.ca/spiral/
- 
+
     Implementation by Yohanes Turnip,
-    inspired by examples in Reiss & McPherson,
-    "Audio Effects: Theory, Implementation and Application", 2nd ed.
+    based on "Audio Effects: Theory, Implementation and Application",
+    2nd ed., by Reiss & McPherson, and on the
+    "Audio EQ Cookbook" biquad formulas by Robert Bristow-Johnson
+    (https://www.w3.org/TR/audio-eq-cookbook/).
 */
 
 #pragma once

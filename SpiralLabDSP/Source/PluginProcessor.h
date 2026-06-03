@@ -15,7 +15,6 @@
 #include "dsp/SpiralChorus.h"
 #include "dsp/SpiralOnePoleLowPass.h"
 #include "dsp/SpiralBiquad.h"
-#include "dsp/SpiralAllpass.h"
 #include "dsp/SpiralWahWah.h"
 
 //==============================================================================

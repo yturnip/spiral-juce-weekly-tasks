@@ -4,7 +4,6 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="hliwcb" name="SpiralLabDSP">
     <GROUP id="{90535237-048C-6F8F-2296-75866541C632}" name="dsp">
-      <FILE id="iOB7rd" name="SpiralAllpass.h" compile="0" resource="0" file="Source/dsp/SpiralAllpass.h"/>
       <FILE id="EieN0W" name="SpiralBiquad.h" compile="0" resource="0" file="Source/dsp/SpiralBiquad.h"/>
       <FILE id="Ip48VS" name="SpiralChorus.h" compile="0" resource="0" file="Source/dsp/SpiralChorus.h"/>
       <FILE id="RnbeeQ" name="SpiralDelay.h" compile="0" resource="0" file="Source/dsp/SpiralDelay.h"/>
