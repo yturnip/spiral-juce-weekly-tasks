@@ -30,39 +30,150 @@ SpiralLabDSPAudioProcessor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
-    // Wah mode: 0 = Manual, 1 = Auto (LFO)
+    /*
+    //Tremolo
     params.push_back (std::make_unique<juce::AudioParameterChoice>(
-        "wahMode",
-        "Wah Mode",
-        juce::StringArray { "Manual", "Auto (LFO)" },
-        0 // default Manual
+        "tremWaveform",
+        "Tremolo Waveform",
+        juce::StringArray { "Sine", "Triangle", "Square", "Square Sloped Edges" },
+        0
     ));
 
-    // Manual pedal position 0..1
     params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "wahPos",
-        "Wah Position",
+        "tremFreq",
+        "Tremolo Frequency (Hz)",
+        juce::NormalisableRange<float> (0.1f, 20.0f),
+        5.0f
+    ));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "tremDepth",
+        "Tremolo Depth",
         juce::NormalisableRange<float> (0.0f, 1.0f),
+        0.5f
+    ));
+    */
+    
+    /*
+    //Ring Modulation
+    params.push_back (std::make_unique<juce::AudioParameterChoice>(
+        "ringWaveform",
+        "RingMod Waveform",
+        juce::StringArray { "Sine", "Triangle", "Square", "Square Sloped Edges" },
+        0
+    ));
+    
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "ringFreq",
+        "RingMod Frequency (Hz)",
+        juce::NormalisableRange<float> (10.0f, 2000.0f, 0.01f, 0.3f), // skewed range
+        200.0f
+    ));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "ringDepth",
+        "RingMod Depth",
+        juce::NormalisableRange<float> (0.0f, 1.0f),
+        1.0f
+    ));
+     */
+    
+    /*
+    //Compressor Parameters
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "compThresh",
+        "Compressor Threshold (dB)",
+        juce::NormalisableRange<float> (-60.0f, 0.0f),
         0.0f
     ));
 
-    // LFO rate (for auto‑wah)
     params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "wahRate",
-        "Wah LFO Rate",
-        juce::NormalisableRange<float> (0.2f, 5.0f, 0.01f, 0.4f),
-        1.0f
-    ));
-
-    // Depth (mix)
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "wahDepth",
-        "Wah Depth",
-        juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f),
-        1.0f
+        "compRatio",
+        "Compressor Ratio",
+        juce::NormalisableRange<float> (1.0f, 20.0f),
+        2.0f
     ));
     
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "compAttack",
+        "Compressor Attack (ms)",
+        juce::NormalisableRange<float> (0.1f, 200.0f),
+        10.0f
+    ));
+    
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "compRelease",
+        "Compressor Release (ms)",
+        juce::NormalisableRange<float> (10.0f, 2000.0f),
+        100.0f
+    ));
+    
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "compMakeUp",
+        "Compressor Make Up (dB)",
+        juce::NormalisableRange<float> (-24.0f, 24.0f),
+        0.0f
+    ));
+    */
+    
+    
+    //Expander Parameters
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "expThresh",
+        "Expander Threshold (dB)",
+        juce::NormalisableRange<float> (-60.0f, 0.0f),
+        0.0f
+    ));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "expRatio",
+        "Expander Ratio",
+        juce::NormalisableRange<float> (1.0f, 20.0f),
+        2.0f
+    ));
+    
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "expAttack",
+        "Expander Attack (ms)",
+        juce::NormalisableRange<float> (0.1f, 200.0f),
+        10.0f
+    ));
+    
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "expRelease",
+        "Expander Release (ms)",
+        juce::NormalisableRange<float> (10.0f, 2000.0f),
+        100.0f
+    ));
+    
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "expFloor",
+        "Expander Floor (dB)",
+        juce::NormalisableRange<float> (-80.0f, 0.0f),
+        -80.0f
+    ));
+    
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "expMakeUp",
+        "Expander Make Up (dB)",
+        juce::NormalisableRange<float> (-24.0f, 24.0f),
+        0.0f
+    ));
+    
+    
     return { params.begin(), params.end() };
+}
+
+void SpiralLabDSPAudioProcessor::pushInputToScope (const float* monoData, int numSamples)
+{
+    if (auto* ed = dynamic_cast<SpiralLabDSPAudioProcessorEditor*> (getActiveEditor()))
+        ed->pushInputSamples (monoData, numSamples);
+}
+
+void SpiralLabDSPAudioProcessor::pushOutputToScope (const float* monoData, int numSamples)
+{
+    if (auto* ed = dynamic_cast<SpiralLabDSPAudioProcessorEditor*> (getActiveEditor()))
+        ed->pushOutputSamples (monoData, numSamples);
 }
 
 SpiralLabDSPAudioProcessor::~SpiralLabDSPAudioProcessor()
@@ -136,16 +247,26 @@ void SpiralLabDSPAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need.
-    auto numChannels = getTotalNumOutputChannels();
     
-    wah.setSampleRate (sampleRate);
-    wah.reset (numChannels);
+    juce::ignoreUnused(samplesPerBlock);
+    
+    const float fs = static_cast<float> (sampleRate);
 
-    // design choices (matching the book roughly)
-    wah.setCenterRange (400.0f, 1200.0f); // vowel region
-    wah.setQ           (4.0f);            // resonant
-    wah.setGainDb      (8.0f);            // strong peak
-    wah.setDepth       (1.0f);
+    // Tremolo
+    trem.setSampleRate (fs);
+    trem.reset();
+    
+    // Ring Mod
+    ring.setSampleRate (fs);
+    ring.reset();
+
+    // Compressor
+    comp.setSampleRate (fs);
+    comp.reset();
+
+    // Expander
+    exp.setSampleRate (fs);
+    exp.reset();
     
 }
 
@@ -204,33 +325,129 @@ void SpiralLabDSPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
     
-    int   modeIndex = (int) apvts.getRawParameterValue ("wahMode")->load();
-    float wahPos    =       apvts.getRawParameterValue ("wahPos")->load();
-    float wahRate   =       apvts.getRawParameterValue ("wahRate")->load();
-    float wahDepth  =       apvts.getRawParameterValue ("wahDepth")->load();
-
-    wah.setDepth (wahDepth);
-
-    if (modeIndex == 0) // Manual mode
+    /*
+    // Tremolo
     {
-        wah.setManualPosition (wahPos);   // sets mode = Manual inside
-    }
-    else // Auto (LFO) mode
-    {
-        wah.setLfoRate (wahRate);         // sets mode = LFO inside
-    }
-
-    for (int ch = 0; ch < totalNumOutputChannels; ++ch)
-    {
-        float* channelData = buffer.getWritePointer (ch);
+        int   wfIndex   = (int) *apvts.getRawParameterValue ("tremWaveform");
+        float tremFreq  =      *apvts.getRawParameterValue ("tremFreq");
+        float tremDepth =      *apvts.getRawParameterValue ("tremDepth");
         
-        for (int i = 0; i < numSamples; ++i)
+        trem.setFrequency (tremFreq);
+        trem.setDepth (tremDepth);
+        switch (wfIndex)
         {
-            float x = channelData[i];
-            x = wah.processSample(x, ch);
-            channelData[i] = x;
+            case 0: trem.setWaveform (SpiralTremolo::Sine); break;
+            case 1: trem.setWaveform (SpiralTremolo::Triangle); break;
+            case 2: trem.setWaveform (SpiralTremolo::Square); break;
+            case 3: trem.setWaveform (SpiralTremolo::SquareSlopedEdges); break;
+            default: break;
         }
     }
+     */
+    
+    /*
+    // Ring Mod
+    {
+        int   wfIndex   = (int) *apvts.getRawParameterValue ("ringWaveform");
+        float ringFreq  =      *apvts.getRawParameterValue ("ringFreq");
+        float ringDepth =      *apvts.getRawParameterValue ("ringDepth");
+        
+        ring.setCarrierFrequency (ringFreq);
+        ring.setDepth (ringDepth);
+        switch (wfIndex)
+        {
+            case 0: ring.setWaveform (SpiralRingMod::Sine); break;
+            case 1: ring.setWaveform (SpiralRingMod::Triangle); break;
+            case 2: ring.setWaveform (SpiralRingMod::Square); break;
+            case 3: ring.setWaveform (SpiralRingMod::SquareSlopedEdges); break;
+            default: break;
+        }
+    }
+     */
+    
+    /*
+    const float thresh   = *apvts.getRawParameterValue ("compThresh");
+    const float ratio    = *apvts.getRawParameterValue ("compRatio");
+    const float attackMs = *apvts.getRawParameterValue ("compAttack");
+    const float relMs    = *apvts.getRawParameterValue ("compRelease");
+    const float makeUp   = *apvts.getRawParameterValue ("compMakeUp");
+    
+    comp.setThreshold(thresh);
+    comp.setRatio(ratio);
+    comp.setAttack(attackMs);
+    comp.setRelease(relMs);
+    comp.setMakeUpGain(makeUp);
+    */
+    
+    
+    const float thresh   = *apvts.getRawParameterValue ("expThresh");
+    const float ratio    = *apvts.getRawParameterValue ("expRatio");
+    const float attackMs = *apvts.getRawParameterValue ("expAttack");
+    const float relMs    = *apvts.getRawParameterValue ("expRelease");
+    const float floor    = *apvts.getRawParameterValue ("expFloor");
+    const float makeUp   = *apvts.getRawParameterValue ("expMakeUp");
+    
+    exp.setThreshold(thresh);
+    exp.setRatio(ratio);
+    exp.setAttack(attackMs);
+    exp.setRelease(relMs);
+    exp.setFloorGain(floor);
+    exp.setMakeUpGain(makeUp);
+    
+    
+    auto* left  = buffer.getWritePointer (0);
+    auto* right = totalNumOutputChannels > 1 ? buffer.getWritePointer (1) : nullptr;
+    
+    juce::HeapBlock<float> inputMono (numSamples);
+    juce::HeapBlock<float> outputMono (numSamples);
+    
+    for (int i = 0; i < numSamples; ++i)
+    {
+        float inL = left[i];
+        float inR = (right != nullptr ? right[i] : inL);
+        
+        const float monoIn = 0.5f * (inL + inR);
+        
+        inputMono[i] = monoIn;
+        
+        /*
+        // Tremolo
+        inL = trem.processSample (inL);
+        inR = trem.processSample (inR);
+         */
+        
+        /*
+        // Ring Mod
+        inL = ring.processSample (inL);
+        inR = ring.processSample (inR);
+         */
+        
+        /*
+        // Compressor gain
+        const float gComp = comp.processSample (monoIn);
+        float postCompL = inL * gComp;
+        float postCompR = inR * gComp;
+        */
+        
+        
+        // Expander gain
+        const float gExp = exp.processSample (monoIn);
+        float postExpL = inL * gExp;
+        float postExpR = inR * gExp;
+        
+        
+        const float outL = postExpL;
+        const float outR = (right != nullptr ? postExpR : outL);
+
+        left[i] = outL;
+        if (right != nullptr)
+            right[i] = outR;
+        
+        outputMono[i] = 0.5f * (outL + outR);
+    }
+    
+    pushInputToScope  (inputMono.get(),  numSamples);
+    pushOutputToScope (outputMono.get(), numSamples);
 }
 
 //==============================================================================
@@ -241,8 +458,8 @@ bool SpiralLabDSPAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SpiralLabDSPAudioProcessor::createEditor()
 {
-    //return new SpiralLabDSPAudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor (*this);
+    return new SpiralLabDSPAudioProcessorEditor (*this);
+    //return new juce::GenericAudioProcessorEditor (*this);
 }
 
 //==============================================================================

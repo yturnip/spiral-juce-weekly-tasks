@@ -16,6 +16,10 @@
 #include "dsp/SpiralOnePoleLowPass.h"
 #include "dsp/SpiralBiquad.h"
 #include "dsp/SpiralWahWah.h"
+#include "dsp/SpiralTremolo.h"
+#include "dsp/SpiralRingMod.h"
+#include "dsp/SpiralCompressor.h"
+#include "dsp/SpiralExpanderGate.h"
 
 //==============================================================================
 /**
@@ -65,8 +69,13 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
 private:
-    SpiralWahWah wah;
+    SpiralTremolo      trem;
+    SpiralRingMod      ring;
+    SpiralCompressor   comp;
+    SpiralExpanderGate exp;
     
+    void pushInputToScope  (const float* monoData, int numSamples);
+    void pushOutputToScope (const float* monoData, int numSamples);
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpiralLabDSPAudioProcessor)
 };
