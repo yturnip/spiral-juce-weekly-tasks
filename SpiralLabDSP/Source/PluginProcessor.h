@@ -20,6 +20,7 @@
 #include "dsp/SpiralRingMod.h"
 #include "dsp/SpiralCompressor.h"
 #include "dsp/SpiralExpanderGate.h"
+#include "dsp/SpiralDistortion.h"
 
 //==============================================================================
 /**
@@ -73,6 +74,7 @@ private:
     SpiralRingMod      ring;
     SpiralCompressor   comp;
     SpiralExpanderGate exp;
+    SpiralDistortion    dist;
     
     void pushInputToScope  (const float* monoData, int numSamples);
     void pushOutputToScope (const float* monoData, int numSamples);

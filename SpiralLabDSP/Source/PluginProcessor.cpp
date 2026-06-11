@@ -116,7 +116,7 @@ SpiralLabDSPAudioProcessor::createParameterLayout()
     ));
     */
     
-    
+    /*
     //Expander Parameters
     params.push_back (std::make_unique<juce::AudioParameterFloat>(
         "expThresh",
@@ -159,8 +159,30 @@ SpiralLabDSPAudioProcessor::createParameterLayout()
         juce::NormalisableRange<float> (-24.0f, 24.0f),
         0.0f
     ));
+    */
     
     
+    params.push_back (std::make_unique<juce::AudioParameterChoice>(
+        "distType",
+        "Distortion Type",
+        juce::StringArray { "Hard Clipping", "Soft Clipping", "Soft Clipping Exponential", "Full Wave Rectifier", "Half Wave Rectifier"},
+        0
+    ));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "distInputGain",
+        "Input Gain (dB)",
+        juce::NormalisableRange<float> (-0.0f, 40.0f),
+        0.0f
+    ));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "distOutputGain",
+        "Output Gain (dB)",
+        juce::NormalisableRange<float> (-40.0f, 0.0f),
+        0.0f
+    ));
+
     return { params.begin(), params.end() };
 }
 
@@ -268,6 +290,8 @@ void SpiralLabDSPAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
     exp.setSampleRate (fs);
     exp.reset();
     
+    dist.setSampleRate(fs);
+    dist.reset();
 }
 
 void SpiralLabDSPAudioProcessor::releaseResources()
@@ -379,7 +403,7 @@ void SpiralLabDSPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     comp.setMakeUpGain(makeUp);
     */
     
-    
+    /*
     const float thresh   = *apvts.getRawParameterValue ("expThresh");
     const float ratio    = *apvts.getRawParameterValue ("expRatio");
     const float attackMs = *apvts.getRawParameterValue ("expAttack");
@@ -393,7 +417,26 @@ void SpiralLabDSPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     exp.setRelease(relMs);
     exp.setFloorGain(floor);
     exp.setMakeUpGain(makeUp);
+    */
     
+    // Distortion
+    {
+        int   dtIndex   = (int) *apvts.getRawParameterValue ("distType");
+        float inputGain  =      *apvts.getRawParameterValue ("distInputGain");
+        float outputGain =      *apvts.getRawParameterValue ("distOutputGain");
+        
+        dist.setInputGainDb(inputGain);
+        dist.setOutputGainDb(outputGain);
+        switch (dtIndex)
+        {
+            case 0: dist.setDistortionType (SpiralDistortion::HardClipping); break;
+            case 1: dist.setDistortionType (SpiralDistortion::SoftClipping); break;
+            case 2: dist.setDistortionType (SpiralDistortion::SoftClippingExponential); break;
+            case 3: dist.setDistortionType (SpiralDistortion::FullWaveRectifier); break;
+            case 4: dist.setDistortionType (SpiralDistortion::HalfWaveRectifier); break;
+            default: break;
+        }
+    }
     
     auto* left  = buffer.getWritePointer (0);
     auto* right = totalNumOutputChannels > 1 ? buffer.getWritePointer (1) : nullptr;
@@ -424,20 +467,24 @@ void SpiralLabDSPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         
         /*
         // Compressor gain
-        const float gComp = comp.processSample (monoIn);
+        const float gComp = comp.computeGain (monoIn);
         float postCompL = inL * gComp;
         float postCompR = inR * gComp;
         */
         
-        
+        /*
         // Expander gain
-        const float gExp = exp.processSample (monoIn);
+        const float gExp = exp.computeGain (monoIn);
         float postExpL = inL * gExp;
         float postExpR = inR * gExp;
+        */
         
+        // Distortion
+        inL = dist.processSample (inL);
+        inR = dist.processSample (inR);
         
-        const float outL = postExpL;
-        const float outR = (right != nullptr ? postExpR : outL);
+        const float outL = inL;
+        const float outR = (right != nullptr ? inR : outL);
 
         left[i] = outL;
         if (right != nullptr)

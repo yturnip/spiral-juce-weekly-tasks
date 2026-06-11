@@ -43,7 +43,7 @@ public:
         yL_prev_dB = 0.0f;
     }
     
-    float processSample (float input)
+    float computeGain (float input)
     {
         float x_g_dB;
         const float absIn = std::fabs(input);
