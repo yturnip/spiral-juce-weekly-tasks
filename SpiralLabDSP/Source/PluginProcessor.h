@@ -21,6 +21,7 @@
 #include "dsp/SpiralCompressor.h"
 #include "dsp/SpiralExpanderGate.h"
 #include "dsp/SpiralDistortion.h"
+#include "dsp/SpiralPhaseVocoder.h"
 
 //==============================================================================
 /**
@@ -70,11 +71,14 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
 private:
-    SpiralTremolo      trem;
-    SpiralRingMod      ring;
-    SpiralCompressor   comp;
-    SpiralExpanderGate exp;
+    SpiralTremolo       trem;
+    SpiralRingMod       ring;
+    SpiralCompressor    comp;
+    SpiralExpanderGate  exp;
     SpiralDistortion    dist;
+    SpiralRobotVocoder  robot;
+    SpiralWhisperVocoder whisper;
+    SpiralPitchShifterVocoder pitch;
     
     void pushInputToScope  (const float* monoData, int numSamples);
     void pushOutputToScope (const float* monoData, int numSamples);

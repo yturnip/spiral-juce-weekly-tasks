@@ -161,7 +161,8 @@ SpiralLabDSPAudioProcessor::createParameterLayout()
     ));
     */
     
-    
+    /*
+    // Distortion
     params.push_back (std::make_unique<juce::AudioParameterChoice>(
         "distType",
         "Distortion Type",
@@ -180,6 +181,16 @@ SpiralLabDSPAudioProcessor::createParameterLayout()
         "distOutputGain",
         "Output Gain (dB)",
         juce::NormalisableRange<float> (-40.0f, 0.0f),
+        0.0f
+    ));
+    */
+    
+    
+    // Pitch Shift Vocoder
+    params.push_back (std::make_unique<juce::AudioParameterFloat>(
+        "pitchSemitones",
+        "Pitch Shift (semitones)",
+        juce::NormalisableRange<float> (-12.0f, 12.0f),
         0.0f
     ));
 
@@ -290,8 +301,33 @@ void SpiralLabDSPAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
     exp.setSampleRate (fs);
     exp.reset();
     
+    // Distortion
     dist.setSampleRate(fs);
     dist.reset();
+    
+    /*
+    // Robotization
+    robot.setSampleRate(fs);
+    constexpr unsigned int fftSize = 1024;
+    constexpr unsigned int hopSize = 256;
+    robot.prepare(fftSize, hopSize);
+    */
+    
+    /*
+    // Whisperization
+    whisper.setSampleRate(fs);
+    constexpr unsigned int fftSize = 64;
+    constexpr unsigned int hopSize = 16;
+    whisper.prepare(fftSize, hopSize);
+    */
+    
+    
+    // PitchShift
+    pitch.setSampleRate(fs);
+    constexpr unsigned int fftSize = 1024;
+    constexpr unsigned int hopSize = 256;
+    pitch.prepare(fftSize, hopSize);
+     
 }
 
 void SpiralLabDSPAudioProcessor::releaseResources()
@@ -341,7 +377,7 @@ void SpiralLabDSPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
+    
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
@@ -350,151 +386,191 @@ void SpiralLabDSPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // interleaved by keeping the same state.
     
     /*
-    // Tremolo
-    {
-        int   wfIndex   = (int) *apvts.getRawParameterValue ("tremWaveform");
-        float tremFreq  =      *apvts.getRawParameterValue ("tremFreq");
-        float tremDepth =      *apvts.getRawParameterValue ("tremDepth");
-        
-        trem.setFrequency (tremFreq);
-        trem.setDepth (tremDepth);
-        switch (wfIndex)
-        {
-            case 0: trem.setWaveform (SpiralTremolo::Sine); break;
-            case 1: trem.setWaveform (SpiralTremolo::Triangle); break;
-            case 2: trem.setWaveform (SpiralTremolo::Square); break;
-            case 3: trem.setWaveform (SpiralTremolo::SquareSlopedEdges); break;
-            default: break;
-        }
-    }
+     // Tremolo
+     {
+     int   wfIndex   = (int) *apvts.getRawParameterValue ("tremWaveform");
+     float tremFreq  =      *apvts.getRawParameterValue ("tremFreq");
+     float tremDepth =      *apvts.getRawParameterValue ("tremDepth");
+     
+     trem.setFrequency (tremFreq);
+     trem.setDepth (tremDepth);
+     switch (wfIndex)
+     {
+     case 0: trem.setWaveform (SpiralTremolo::Sine); break;
+     case 1: trem.setWaveform (SpiralTremolo::Triangle); break;
+     case 2: trem.setWaveform (SpiralTremolo::Square); break;
+     case 3: trem.setWaveform (SpiralTremolo::SquareSlopedEdges); break;
+     default: break;
+     }
+     }
      */
     
     /*
-    // Ring Mod
-    {
-        int   wfIndex   = (int) *apvts.getRawParameterValue ("ringWaveform");
-        float ringFreq  =      *apvts.getRawParameterValue ("ringFreq");
-        float ringDepth =      *apvts.getRawParameterValue ("ringDepth");
-        
-        ring.setCarrierFrequency (ringFreq);
-        ring.setDepth (ringDepth);
-        switch (wfIndex)
-        {
-            case 0: ring.setWaveform (SpiralRingMod::Sine); break;
-            case 1: ring.setWaveform (SpiralRingMod::Triangle); break;
-            case 2: ring.setWaveform (SpiralRingMod::Square); break;
-            case 3: ring.setWaveform (SpiralRingMod::SquareSlopedEdges); break;
-            default: break;
-        }
-    }
+     // Ring Mod
+     {
+     int   wfIndex   = (int) *apvts.getRawParameterValue ("ringWaveform");
+     float ringFreq  =      *apvts.getRawParameterValue ("ringFreq");
+     float ringDepth =      *apvts.getRawParameterValue ("ringDepth");
+     
+     ring.setCarrierFrequency (ringFreq);
+     ring.setDepth (ringDepth);
+     switch (wfIndex)
+     {
+     case 0: ring.setWaveform (SpiralRingMod::Sine); break;
+     case 1: ring.setWaveform (SpiralRingMod::Triangle); break;
+     case 2: ring.setWaveform (SpiralRingMod::Square); break;
+     case 3: ring.setWaveform (SpiralRingMod::SquareSlopedEdges); break;
+     default: break;
+     }
+     }
      */
     
     /*
-    const float thresh   = *apvts.getRawParameterValue ("compThresh");
-    const float ratio    = *apvts.getRawParameterValue ("compRatio");
-    const float attackMs = *apvts.getRawParameterValue ("compAttack");
-    const float relMs    = *apvts.getRawParameterValue ("compRelease");
-    const float makeUp   = *apvts.getRawParameterValue ("compMakeUp");
-    
-    comp.setThreshold(thresh);
-    comp.setRatio(ratio);
-    comp.setAttack(attackMs);
-    comp.setRelease(relMs);
-    comp.setMakeUpGain(makeUp);
-    */
+     const float thresh   = *apvts.getRawParameterValue ("compThresh");
+     const float ratio    = *apvts.getRawParameterValue ("compRatio");
+     const float attackMs = *apvts.getRawParameterValue ("compAttack");
+     const float relMs    = *apvts.getRawParameterValue ("compRelease");
+     const float makeUp   = *apvts.getRawParameterValue ("compMakeUp");
+     
+     comp.setThreshold(thresh);
+     comp.setRatio(ratio);
+     comp.setAttack(attackMs);
+     comp.setRelease(relMs);
+     comp.setMakeUpGain(makeUp);
+     */
     
     /*
-    const float thresh   = *apvts.getRawParameterValue ("expThresh");
-    const float ratio    = *apvts.getRawParameterValue ("expRatio");
-    const float attackMs = *apvts.getRawParameterValue ("expAttack");
-    const float relMs    = *apvts.getRawParameterValue ("expRelease");
-    const float floor    = *apvts.getRawParameterValue ("expFloor");
-    const float makeUp   = *apvts.getRawParameterValue ("expMakeUp");
+     const float thresh   = *apvts.getRawParameterValue ("expThresh");
+     const float ratio    = *apvts.getRawParameterValue ("expRatio");
+     const float attackMs = *apvts.getRawParameterValue ("expAttack");
+     const float relMs    = *apvts.getRawParameterValue ("expRelease");
+     const float floor    = *apvts.getRawParameterValue ("expFloor");
+     const float makeUp   = *apvts.getRawParameterValue ("expMakeUp");
+     
+     exp.setThreshold(thresh);
+     exp.setRatio(ratio);
+     exp.setAttack(attackMs);
+     exp.setRelease(relMs);
+     exp.setFloorGain(floor);
+     exp.setMakeUpGain(makeUp);
+     */
     
-    exp.setThreshold(thresh);
-    exp.setRatio(ratio);
-    exp.setAttack(attackMs);
-    exp.setRelease(relMs);
-    exp.setFloorGain(floor);
-    exp.setMakeUpGain(makeUp);
-    */
+    /*
+     // Distortion
+     {
+     int   dtIndex   = (int) *apvts.getRawParameterValue ("distType");
+     float inputGain  =      *apvts.getRawParameterValue ("distInputGain");
+     float outputGain =      *apvts.getRawParameterValue ("distOutputGain");
+     
+     dist.setInputGainDb(inputGain);
+     dist.setOutputGainDb(outputGain);
+     switch (dtIndex)
+     {
+     case 0: dist.setDistortionType (SpiralDistortion::HardClipping); break;
+     case 1: dist.setDistortionType (SpiralDistortion::SoftClipping); break;
+     case 2: dist.setDistortionType (SpiralDistortion::SoftClippingExponential); break;
+     case 3: dist.setDistortionType (SpiralDistortion::FullWaveRectifier); break;
+     case 4: dist.setDistortionType (SpiralDistortion::HalfWaveRectifier); break;
+     default: break;
+     }
+     }
+     */
+     
     
-    // Distortion
-    {
-        int   dtIndex   = (int) *apvts.getRawParameterValue ("distType");
-        float inputGain  =      *apvts.getRawParameterValue ("distInputGain");
-        float outputGain =      *apvts.getRawParameterValue ("distOutputGain");
-        
-        dist.setInputGainDb(inputGain);
-        dist.setOutputGainDb(outputGain);
-        switch (dtIndex)
-        {
-            case 0: dist.setDistortionType (SpiralDistortion::HardClipping); break;
-            case 1: dist.setDistortionType (SpiralDistortion::SoftClipping); break;
-            case 2: dist.setDistortionType (SpiralDistortion::SoftClippingExponential); break;
-            case 3: dist.setDistortionType (SpiralDistortion::FullWaveRectifier); break;
-            case 4: dist.setDistortionType (SpiralDistortion::HalfWaveRectifier); break;
-            default: break;
-        }
-    }
+    // Pitch Shift
+    float semitones = *apvts.getRawParameterValue ("pitchSemitones");
+    
+    float ratio = std::pow(2.0f, semitones / 12.0f);
+    
+    ratio = juce::jlimit(0.25f, 4.0f, ratio);
+    
+    pitch.setPitchShift(ratio);
+    
     
     auto* left  = buffer.getWritePointer (0);
     auto* right = totalNumOutputChannels > 1 ? buffer.getWritePointer (1) : nullptr;
     
+    
+    juce::HeapBlock<float> monoBuffer (numSamples);
+    for (int i = 0; i < numSamples; ++i)
+    {
+        float inL = left[i];
+        float inR = (right != nullptr ? right[i] : inL);
+        monoBuffer[i] = 0.5f * (inL + inR);
+    }
+    pushInputToScope  (monoBuffer.get(),  numSamples);
+    
+    pitch.processBlock(monoBuffer.get(), (unsigned int) numSamples);
+    //whisper.processBlock(monoBuffer.get(), (unsigned int) numSamples);
+    //robot.processBlock(monoBuffer.get(), (unsigned int) numSamples);
+    
+    for (int i = 0; i < numSamples; ++i)
+    {
+        float y = monoBuffer[i];
+
+        left[i] = y;
+        if (right != nullptr)
+            right[i] = y;
+    }
+     
+
+    /*
     juce::HeapBlock<float> inputMono (numSamples);
     juce::HeapBlock<float> outputMono (numSamples);
     
     for (int i = 0; i < numSamples; ++i)
     {
-        float inL = left[i];
-        float inR = (right != nullptr ? right[i] : inL);
-        
-        const float monoIn = 0.5f * (inL + inR);
-        
-        inputMono[i] = monoIn;
-        
-        /*
-        // Tremolo
-        inL = trem.processSample (inL);
-        inR = trem.processSample (inR);
-         */
-        
-        /*
-        // Ring Mod
-        inL = ring.processSample (inL);
-        inR = ring.processSample (inR);
-         */
-        
-        /*
-        // Compressor gain
-        const float gComp = comp.computeGain (monoIn);
-        float postCompL = inL * gComp;
-        float postCompR = inR * gComp;
-        */
-        
-        /*
-        // Expander gain
-        const float gExp = exp.computeGain (monoIn);
-        float postExpL = inL * gExp;
-        float postExpR = inR * gExp;
-        */
-        
-        // Distortion
-        inL = dist.processSample (inL);
-        inR = dist.processSample (inR);
-        
-        const float outL = inL;
-        const float outR = (right != nullptr ? inR : outL);
-
-        left[i] = outL;
-        if (right != nullptr)
-            right[i] = outR;
-        
-        outputMono[i] = 0.5f * (outL + outR);
-    }
+    float inL = left[i];
+    float inR = (right != nullptr ? right[i] : inL);
+     
+    const float monoIn = 0.5f * (inL + inR);
+     
+    inputMono[i] = monoIn;
+    */
+    /*
+    // Tremolo
+    inL = trem.processSample (inL);
+    inR = trem.processSample (inR);
+    */
     
-    pushInputToScope  (inputMono.get(),  numSamples);
-    pushOutputToScope (outputMono.get(), numSamples);
+    /*
+    // Ring Mod
+    inL = ring.processSample (inL);
+    inR = ring.processSample (inR);
+    */
+    
+    /*
+    // Compressor gain
+    const float gComp = comp.computeGain (monoIn);
+    float postCompL = inL * gComp;
+    float postCompR = inR * gComp;
+    */
+    
+    /*
+    // Expander gain
+    const float gExp = exp.computeGain (monoIn);
+    float postExpL = inL * gExp;
+    float postExpR = inR * gExp;
+    */
+    
+    /*
+    // Distortion
+    inL = dist.processSample (inL);
+    inR = dist.processSample (inR);
+    
+    const float outL = inL;
+    const float outR = (right != nullptr ? inR : outL);
+    
+    left[i] = outL;
+    if (right != nullptr)
+        right[i] = outR;
+    
+    outputMono[i] = 0.5f * (outL + outR);
+    */
+    //}
+    
+    
+    pushOutputToScope (monoBuffer.get(), numSamples);
 }
 
 //==============================================================================

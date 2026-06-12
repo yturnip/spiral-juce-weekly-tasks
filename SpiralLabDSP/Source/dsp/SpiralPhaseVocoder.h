@@ -12,96 +12,283 @@
 #include <vector>
 #include <cmath>
 
-class SpiralDistortion
+class SpiralPhaseVocoder
 {
 public:
-    enum DistortionType
-    {
-        HardClipping = 0,
-        SoftClipping,
-        SoftClippingExponential,
-        FullWaveRectifier,
-        HalfWaveRectifier
-    };
+    virtual ~SpiralPhaseVocoder() = default;
     
     void setSampleRate (float sr)       { sampleRate = sr; }
-    void setInputGainDb (float dB)
-    {
-        inputGainDb = dB;
-        inputGainLin = std::pow (10.0f, inputGainDb / 20.0f);
-    }
-    void setOutputGainDb (float dB)
-    {
-        outputGainDb = dB;
-        outputGainLin = std::pow (10.0f, outputGainDb / 20.0f);
-    }
-    void setDistortionType (DistortionType t)      { type = t; }
     
-    void reset()    {}
-    
-    float processSample (float inData)
+    void prepare (unsigned int fftSizeIn, unsigned int hopSizeIn)
     {
-        const float input = inData * inputGainLin;
+        fftSize = fftSizeIn;
+        hopSize = hopSizeIn;
+        hopCounter = 0;
         
-        float output = 0.0f;
+        fft = std::make_unique<juce::dsp::FFT>(std::log2 (fftSize));
         
-        switch (type)
+        inputBuffer.setSize(1, (int) fftSize);
+        outputBuffer.setSize(1, (int) (fftSize * 2));
+        
+        inputBuffer.clear();
+        outputBuffer.clear();
+        
+        inputWritePointer   = 0;
+        outputWritePointer  = 0;
+        outputReadPointer   = 0;
+        
+        timeDomainBuffer.malloc(fftSize);
+        frequencyDomainBuffer.malloc(fftSize);
+        
+        fftWindow.malloc(fftSize);
+        computeHannWindow();
+        computeWindowScaleFactor();
+        
+        lastInputPhases.assign      (fftSize / 2 + 1, 0.0f);
+        lastOutputPhases.assign     (fftSize / 2 + 1, 0.0f);
+        analysisMagnitudes.assign   (fftSize / 2 + 1, 0.0f);
+        analysisFrequencies.assign  (fftSize / 2 + 1, 0.0f);
+        synthesisMagnitudes.assign  (fftSize / 2 + 1, 0.0f);
+        synthesisFrequencies.assign (fftSize / 2 + 1, 0.0f);
+
+    }
+    
+    void reset()
+    {
+        inputBuffer.clear();
+        outputBuffer.clear();
+        inputWritePointer   = 0;
+        outputWritePointer  = 0;
+        outputReadPointer   = 0;
+        hopCounter          = 0;
+    }
+    
+    void processBlock (float* audioData, unsigned int numSamples)
+    {
+        overlapAdd(audioData, numSamples);
+    }
+    
+protected:
+    void overlapAdd (float* audioData, unsigned int numSamples)
+    {
+        for (unsigned int n = 0; n < numSamples; ++n)
         {
-            case HardClipping:
-            {
-                const float threshold = 1.0f;
-                if      (input > threshold) output = threshold;
-                else if (input < -threshold) output = -threshold;
-                else    output = input;
-                break;
-            }
+            const float inputSample = audioData[n];
+            inputBuffer.setSample (0, (int) inputWritePointer, inputSample);
+            if (++inputWritePointer >= (unsigned int) inputBuffer.getNumSamples())
+                inputWritePointer = 0;
             
-            case SoftClipping:
+            audioData[n] = outputBuffer.getSample(0, (int) outputReadPointer);
+            outputBuffer.setSample (0, (int) outputReadPointer, 0.0f);
+            if (++outputReadPointer >= (unsigned int) outputBuffer.getNumSamples())
+                outputReadPointer = 0;
+            
+            if (++hopCounter >= hopSize)
             {
-                const float threshold1 = 1.0f/3.0f;
-                const float threshold2 = 2.0f/3.0f;
+                hopCounter = 0;
                 
-                if (input > threshold2) output = 1.0f;
-                else if (input > threshold1) output = (3.0f - (2.0f + 3.0f * input) * (2.0f + 3.0f * input)) / 3.0f;
-                else if (input < -threshold2) output = 1.0f;
-                else if (input < -threshold1) output = -(3.0f - (2.0f + 3.0f * input) * (2.0f + 3.0f * input)) / 3.0f;
-                else output = 2.0f * input;
-                break;
+                int inputIndex = (int) inputWritePointer;
+                for (unsigned int i = 0; i < fftSize; ++i)
+                {
+                    const float x = fftWindow[i] * inputBuffer.getSample (0, inputIndex);
+                    timeDomainBuffer[i].real(x);
+                    timeDomainBuffer[i].imag(0.0f);
+                    
+                    if (++inputIndex >= inputBuffer.getNumSamples())
+                        inputIndex = 0;
+                }
+                
+                fft->perform (timeDomainBuffer, frequencyDomainBuffer, false);
+                
+                modification();
+                
+                fft->perform (frequencyDomainBuffer, timeDomainBuffer, true);
+                
+                int outputIndex = (int) outputWritePointer;
+                for (unsigned int i = 0; i < fftSize; ++i)
+                {
+                    float y = outputBuffer.getSample(0, outputIndex);
+                    y += timeDomainBuffer[i].real() * windowScaleFactor;
+                    outputBuffer.setSample (0, outputIndex, y);
+                    
+                    if (++outputIndex >= outputBuffer.getNumSamples())
+                        outputIndex = 0;
+                }
+                
+                outputWritePointer += hopSize;
+                if (outputWritePointer >= (unsigned int) outputBuffer.getNumSamples())
+                    outputWritePointer -= outputBuffer.getNumSamples();
             }
+        }
+    }
+    
+    void computeHannWindow()
+    {
+        for (unsigned int n = 0; n < fftSize; ++n)
+        {
+            fftWindow[n] = 0.5f * (1.0f - std::cos (2.0f * float (juce::MathConstants<float>::pi) * n / (fftSize - 1)));
+        }
+    }
+    
+    void computeWindowScaleFactor()
+    {
+        double sumSquares = 0.0;
+        for (unsigned int n = 0; n < fftSize; ++n)
+            sumSquares += double (fftWindow[n] * fftWindow[n]);
+        
+        sumSquares /= double (fftSize);
+        
+        windowScaleFactor = 1.0f / (float (sumSquares) * (fftSize / hopSize));
+    }
+    
+    virtual void modification() {}
+    
+    static float wrapPhase (float p)
+    {
+        while (p >  juce::MathConstants<float>::pi)  p -= 2.0f * juce::MathConstants<float>::pi;
+        while (p < -juce::MathConstants<float>::pi)  p += 2.0f * juce::MathConstants<float>::pi;
+        return p;
+    }
+    
+    float sampleRate            = 44100.0f;
+    
+    juce::AudioBuffer<float> inputBuffer, outputBuffer;
+    
+    unsigned int inputWritePointer  = 0;
+    unsigned int outputWritePointer = 0;
+    unsigned int outputReadPointer  = 0;
+    
+    unsigned int hopCounter = 0;
+    unsigned int fftSize    = 1024;
+    unsigned int hopSize    = 256;
+    
+    float windowScaleFactor = 1.0f;
+    
+    std::unique_ptr<juce::dsp::FFT> fft;
+    juce::HeapBlock<float> fftWindow;
+    juce::HeapBlock<juce::dsp::Complex<float>> timeDomainBuffer;
+    juce::HeapBlock<juce::dsp::Complex<float>> frequencyDomainBuffer;
+    
+    // Pitch-shift state
+    std::vector<float> lastInputPhases;
+    std::vector<float> lastOutputPhases;
+    
+    std::vector<float> analysisMagnitudes;
+    std::vector<float> analysisFrequencies;
+    std::vector<float> synthesisMagnitudes;
+    std::vector<float> synthesisFrequencies;
+    
+};
+
+class SpiralRobotVocoder : public SpiralPhaseVocoder
+{
+protected:
+    void modification() override
+    {
+        for (unsigned int index = 0; index < fftSize; ++index)
+        {
+            float magnitude = std::abs(frequencyDomainBuffer[index]);
             
-            case SoftClippingExponential:
+            frequencyDomainBuffer[index].real(magnitude);
+            frequencyDomainBuffer[index].imag(0.0f);
+        }
+    }
+};
+
+class SpiralWhisperVocoder : public SpiralPhaseVocoder
+{
+protected:
+    void modification() override
+    {
+        for (unsigned int index = 0; index < fftSize / 2 + 1; ++index)
+        {
+            float magnitude = std::abs(frequencyDomainBuffer[index]);
+            
+            float phase = 2.0f * juce::MathConstants<float>::pi * (float) rand() / (float) RAND_MAX;
+            
+            frequencyDomainBuffer[index].real(magnitude * std::cos(phase));
+            frequencyDomainBuffer[index].imag(magnitude * std::sin(phase));
+            
+            if (index > 0 && index < fftSize / 2)
             {
-                if (input > 0) output = 1.0f - std::exp (-input);
-                else output = -1.0f + std::exp (input);
-                break;
+                frequencyDomainBuffer[fftSize - index].real(magnitude * std::cos(phase));
+                frequencyDomainBuffer[fftSize - index].imag(magnitude * std::sin(-phase));
             }
+        }
+    }
+};
+
+class SpiralPitchShifterVocoder : public SpiralPhaseVocoder
+{
+public:
+    void setPitchShift (float newRatio) noexcept
+    {
+        pitchShift = newRatio;
+    }
+
+protected:
+    void modification() override
+    {
+        for (int index = 0; index < fftSize / 2 + 1; ++index)
+        {
+            float amplitude = std::abs(frequencyDomainBuffer[index]);
+            float phase     = std::arg(frequencyDomainBuffer[index]);
             
-            case FullWaveRectifier:
-            {
-                output = std::fabs (input);
-                break;
-            }
+            float phaseDiff = phase - lastInputPhases[index];
             
-            case HalfWaveRectifier:
+            float binCentreFrequency = 2.0f * juce::MathConstants<float>::pi * (float) index / (float) fftSize;
+            phaseDiff = wrapPhase(phaseDiff - binCentreFrequency * hopSize);
+            
+            float binDeviation = phaseDiff * (float) fftSize / (float) hopSize / (2.0f * juce::MathConstants<float>::pi);
+            
+            analysisFrequencies[index] = (float) index + binDeviation;
+            
+            analysisMagnitudes[index] = amplitude;
+            
+            lastInputPhases[index] = phase;
+        }
+        
+        for (int index = 0; index < fftSize / 2 + 1; ++index)
+        {
+            synthesisMagnitudes[index] = synthesisFrequencies[index] = 0;
+        }
+        
+        for (int index = 0; index < fftSize / 2 + 1; ++index)
+        {
+            int newBin = std::floor(index * pitchShift + 0.5f);
+            
+            if (newBin <= fftSize / 2)
             {
-                if (input > 0) output = input;
-                else output = 0;
-                break;
+                synthesisMagnitudes[newBin] += analysisMagnitudes[index];
+                synthesisFrequencies[newBin] = analysisFrequencies[index] * pitchShift;
             }
         }
         
-        output *= outputGainLin;
-        return output;
+        for (int index = 0; index < fftSize / 2 + 1; ++index)
+        {
+            float amplitude = synthesisMagnitudes[index];
+            
+            float binDeviation = synthesisFrequencies[index] - index;
+            
+            float phaseDiff = binDeviation * 2.0f * juce::MathConstants<float>::pi * (float) hopSize / (float) fftSize;
+            
+            float binCentreFrequency = 2.0f * juce::MathConstants<float>::pi * (float) index / (float) fftSize;
+            phaseDiff += binCentreFrequency * hopSize;
+            
+            float outPhase = wrapPhase(lastOutputPhases[index] + phaseDiff);
+            
+            frequencyDomainBuffer[index].real(amplitude * std::cos(outPhase));
+            frequencyDomainBuffer[index].imag(amplitude * std::sin(outPhase));
+            
+            if (index > 0 && index < fftSize / 2)
+            {
+                frequencyDomainBuffer[fftSize - index].real(amplitude * std::cos(outPhase));
+                frequencyDomainBuffer[fftSize - index].imag(amplitude * std::sin(-outPhase));
+            }
+            
+            lastOutputPhases[index] = outPhase;
+        }
     }
     
-private:
-    float sampleRate            = 44100.0f;
-    
-    float inputGainDb            = 0.0f;
-    float inputGainLin          = 1.0f;
-    
-    float outputGainDb          = 0.0f;
-    float outputGainLin         = 1.0f;
-    
-    DistortionType type   =  HardClipping;
+    float pitchShift    = 1.0f;
 };
