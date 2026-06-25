@@ -22,6 +22,9 @@
 #include "dsp/SpiralExpanderGate.h"
 #include "dsp/SpiralDistortion.h"
 #include "dsp/SpiralPhaseVocoder.h"
+#include "dsp/SpiralComb.h"
+#include "dsp/SpiralAllpassSchroeder.h"
+#include "dsp/SpiralConvolutionReverb.h"
 
 //==============================================================================
 /**
@@ -71,14 +74,19 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
 private:
-    SpiralTremolo       trem;
-    SpiralRingMod       ring;
-    SpiralCompressor    comp;
-    SpiralExpanderGate  exp;
-    SpiralDistortion    dist;
-    SpiralRobotVocoder  robot;
-    SpiralWhisperVocoder whisper;
-    SpiralPitchShifterVocoder pitch;
+    SpiralConvolutionReverb rvb;
+    std::vector<float> testIR;
+    
+    /*
+    SpiralRandComb randComb;
+    bool lastTriggerState = false;
+     */
+    
+    SpiralRandWipe randWipe;
+    bool lastTriggerState = false;
+    
+    juce::AudioBuffer<float> sourceBBuffer;
+    int sourceBReadPos = 0;
     
     void pushInputToScope  (const float* monoData, int numSamples);
     void pushOutputToScope (const float* monoData, int numSamples);

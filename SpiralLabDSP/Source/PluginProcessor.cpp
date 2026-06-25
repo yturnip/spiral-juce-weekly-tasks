@@ -31,169 +31,29 @@ SpiralLabDSPAudioProcessor::createParameterLayout()
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
     /*
-    //Tremolo
-    params.push_back (std::make_unique<juce::AudioParameterChoice>(
-        "tremWaveform",
-        "Tremolo Waveform",
-        juce::StringArray { "Sine", "Triangle", "Square", "Square Sloped Edges" },
-        0
-    ));
-
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "tremFreq",
-        "Tremolo Frequency (Hz)",
-        juce::NormalisableRange<float> (0.1f, 20.0f),
-        5.0f
-    ));
-
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "tremDepth",
-        "Tremolo Depth",
-        juce::NormalisableRange<float> (0.0f, 1.0f),
-        0.5f
-    ));
-    */
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (
+    "randcomb_wipe",
+    "RandComb Wipe",
+    juce::NormalisableRange<float> (0.0f, 1.0f, 0.001f),
+    0.0f));
     
-    /*
-    //Ring Modulation
-    params.push_back (std::make_unique<juce::AudioParameterChoice>(
-        "ringWaveform",
-        "RingMod Waveform",
-        juce::StringArray { "Sine", "Triangle", "Square", "Square Sloped Edges" },
-        0
-    ));
-    
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "ringFreq",
-        "RingMod Frequency (Hz)",
-        juce::NormalisableRange<float> (10.0f, 2000.0f, 0.01f, 0.3f), // skewed range
-        200.0f
-    ));
-
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "ringDepth",
-        "RingMod Depth",
-        juce::NormalisableRange<float> (0.0f, 1.0f),
-        1.0f
-    ));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (
+    "randcomb_trigger",
+    "RandComb Trigger",
+    false));
      */
     
-    /*
-    //Compressor Parameters
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "compThresh",
-        "Compressor Threshold (dB)",
-        juce::NormalisableRange<float> (-60.0f, 0.0f),
-        0.0f
-    ));
-
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "compRatio",
-        "Compressor Ratio",
-        juce::NormalisableRange<float> (1.0f, 20.0f),
-        2.0f
-    ));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (
+    "randwipe_wipe",
+    "RandWipe Wipe",
+    juce::NormalisableRange<float> (0.0f, 1.0f, 0.001f),
+    0.0f));
     
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "compAttack",
-        "Compressor Attack (ms)",
-        juce::NormalisableRange<float> (0.1f, 200.0f),
-        10.0f
-    ));
+    params.push_back (std::make_unique<juce::AudioParameterBool> (
+    "randwipe_trigger",
+    "RandWipe Trigger",
+    false));
     
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "compRelease",
-        "Compressor Release (ms)",
-        juce::NormalisableRange<float> (10.0f, 2000.0f),
-        100.0f
-    ));
-    
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "compMakeUp",
-        "Compressor Make Up (dB)",
-        juce::NormalisableRange<float> (-24.0f, 24.0f),
-        0.0f
-    ));
-    */
-    
-    /*
-    //Expander Parameters
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "expThresh",
-        "Expander Threshold (dB)",
-        juce::NormalisableRange<float> (-60.0f, 0.0f),
-        0.0f
-    ));
-
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "expRatio",
-        "Expander Ratio",
-        juce::NormalisableRange<float> (1.0f, 20.0f),
-        2.0f
-    ));
-    
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "expAttack",
-        "Expander Attack (ms)",
-        juce::NormalisableRange<float> (0.1f, 200.0f),
-        10.0f
-    ));
-    
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "expRelease",
-        "Expander Release (ms)",
-        juce::NormalisableRange<float> (10.0f, 2000.0f),
-        100.0f
-    ));
-    
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "expFloor",
-        "Expander Floor (dB)",
-        juce::NormalisableRange<float> (-80.0f, 0.0f),
-        -80.0f
-    ));
-    
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "expMakeUp",
-        "Expander Make Up (dB)",
-        juce::NormalisableRange<float> (-24.0f, 24.0f),
-        0.0f
-    ));
-    */
-    
-    /*
-    // Distortion
-    params.push_back (std::make_unique<juce::AudioParameterChoice>(
-        "distType",
-        "Distortion Type",
-        juce::StringArray { "Hard Clipping", "Soft Clipping", "Soft Clipping Exponential", "Full Wave Rectifier", "Half Wave Rectifier"},
-        0
-    ));
-
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "distInputGain",
-        "Input Gain (dB)",
-        juce::NormalisableRange<float> (-0.0f, 40.0f),
-        0.0f
-    ));
-
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "distOutputGain",
-        "Output Gain (dB)",
-        juce::NormalisableRange<float> (-40.0f, 0.0f),
-        0.0f
-    ));
-    */
-    
-    
-    // Pitch Shift Vocoder
-    params.push_back (std::make_unique<juce::AudioParameterFloat>(
-        "pitchSemitones",
-        "Pitch Shift (semitones)",
-        juce::NormalisableRange<float> (-12.0f, 12.0f),
-        0.0f
-    ));
-
     return { params.begin(), params.end() };
 }
 
@@ -280,54 +140,103 @@ void SpiralLabDSPAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need.
-    
-    juce::ignoreUnused(samplesPerBlock);
-    
-    const float fs = static_cast<float> (sampleRate);
-
-    // Tremolo
-    trem.setSampleRate (fs);
-    trem.reset();
-    
-    // Ring Mod
-    ring.setSampleRate (fs);
-    ring.reset();
-
-    // Compressor
-    comp.setSampleRate (fs);
-    comp.reset();
-
-    // Expander
-    exp.setSampleRate (fs);
-    exp.reset();
-    
-    // Distortion
-    dist.setSampleRate(fs);
-    dist.reset();
-    
     /*
-    // Robotization
-    robot.setSampleRate(fs);
-    constexpr unsigned int fftSize = 1024;
-    constexpr unsigned int hopSize = 256;
-    robot.prepare(fftSize, hopSize);
-    */
+    const int convBlockSize = samplesPerBlock;
     
+    juce::AudioFormatManager formatManager;
+    formatManager.registerBasicFormats();
+
+    juce::File irFile ("/Users/MsiModern/SPIRALab/spiral-juce-weekly-tasks/SpiralLabDSP/Source/small-room-ir-pack/252847__kijjaz__20141025-kijjaz-ir-new-office-01.aiff");
+
+    std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor (irFile));
+    if (reader != nullptr)
+    {
+        // --- Resample IR from its native rate to the session sample rate ---
+        juce::AudioBuffer<float> rawIR ((int) reader->numChannels, (int) reader->lengthInSamples);
+        reader->read (&rawIR, 0, (int) reader->lengthInSamples, 0, true, true);
+        
+        const double sourceSampleRate = reader->sampleRate;
+        const double ratio = sampleRate / sourceSampleRate; // e.g. 44100 / 192000
+
+        const int resampledLength = juce::roundToInt (rawIR.getNumSamples() * ratio);
+        
+        juce::AudioBuffer<float> resampledIR (1, resampledLength);
+        resampledIR.clear();
+
+        // Use JUCE's LagrangeInterpolator for quality resampling
+        juce::LagrangeInterpolator resampler;
+        resampler.reset();
+
+        const float* src = rawIR.getReadPointer (0);
+        float* dst = resampledIR.getWritePointer (0);
+
+        // speedRatio = sourceSampleRate / destSampleRate (how many source samples per dest sample)
+        const double speedRatio = sourceSampleRate / sampleRate;
+        resampler.process (speedRatio, src, dst, resampledLength);
+
+        testIR.resize (resampledLength);
+        for (int i = 0; i < resampledLength; ++i)
+            testIR[i] = dst[i];
+    }
+    else
+    {
+        testIR.assign (samplesPerBlock, 0.0f);
+        testIR[0] = 1.0f;
+    }
+    
+    if (!testIR.empty())
+    {
+        // Compute RMS energy of the IR
+        float energy = 0.0f;
+        for (float s : testIR)
+            energy += s * s;
+
+        energy = std::sqrt (energy / (float) testIR.size());
+
+        // Avoid division by zero
+        if (energy > 1e-6f)
+        {
+            const float gain = 1.0f / energy;
+            for (float& s : testIR)
+                s *= gain;
+        }
+    }
+    
+    rvb.prepare(sampleRate, convBlockSize, testIR);
+    */
     /*
-    // Whisperization
-    whisper.setSampleRate(fs);
-    constexpr unsigned int fftSize = 64;
-    constexpr unsigned int hopSize = 16;
-    whisper.prepare(fftSize, hopSize);
-    */
+    randComb.setSampleRate (sampleRate);
+    randComb.prepare (1024, 256);
+     */
+    randWipe.setSampleRate ((float) sampleRate);
+    randWipe.prepare  (1024, 256);   // A path
+    randWipe.prepareB (1024, 256);   // B path
+    randWipe.trigger();
     
-    
-    // PitchShift
-    pitch.setSampleRate(fs);
-    constexpr unsigned int fftSize = 1024;
-    constexpr unsigned int hopSize = 256;
-    pitch.prepare(fftSize, hopSize);
-     
+    juce::AudioFormatManager formatManager;
+    formatManager.registerBasicFormats();
+
+    juce::File bFile ("/Users/MsiModern/Downloads/mondamusic-guitar-solo-guitar-music-499187.mp3");
+    std::unique_ptr<juce::AudioFormatReader> reader (formatManager.createReaderFor (bFile));
+
+    if (reader != nullptr)
+    {
+        const int len = (int) reader->lengthInSamples;
+        sourceBBuffer.setSize (1, len);
+        reader->read (&sourceBBuffer, 0, len, 0, true, false);
+        DBG ("Source B loaded: " << len << " samples");
+    }
+    else
+    {
+        // Fallback: white noise buffer of 1 second
+        const int len = (int) sampleRate;
+        sourceBBuffer.setSize (1, len);
+        for (int i = 0; i < len; ++i)
+            sourceBBuffer.setSample (0, i, ((float) rand() / RAND_MAX) * 2.0f - 1.0f);
+        DBG ("Source B file not found — using noise fallback");
+    }
+
+    sourceBReadPos = 0;
 }
 
 void SpiralLabDSPAudioProcessor::releaseResources()
@@ -385,192 +294,83 @@ void SpiralLabDSPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
     
-    /*
-     // Tremolo
-     {
-     int   wfIndex   = (int) *apvts.getRawParameterValue ("tremWaveform");
-     float tremFreq  =      *apvts.getRawParameterValue ("tremFreq");
-     float tremDepth =      *apvts.getRawParameterValue ("tremDepth");
-     
-     trem.setFrequency (tremFreq);
-     trem.setDepth (tremDepth);
-     switch (wfIndex)
-     {
-     case 0: trem.setWaveform (SpiralTremolo::Sine); break;
-     case 1: trem.setWaveform (SpiralTremolo::Triangle); break;
-     case 2: trem.setWaveform (SpiralTremolo::Square); break;
-     case 3: trem.setWaveform (SpiralTremolo::SquareSlopedEdges); break;
-     default: break;
-     }
-     }
-     */
-    
-    /*
-     // Ring Mod
-     {
-     int   wfIndex   = (int) *apvts.getRawParameterValue ("ringWaveform");
-     float ringFreq  =      *apvts.getRawParameterValue ("ringFreq");
-     float ringDepth =      *apvts.getRawParameterValue ("ringDepth");
-     
-     ring.setCarrierFrequency (ringFreq);
-     ring.setDepth (ringDepth);
-     switch (wfIndex)
-     {
-     case 0: ring.setWaveform (SpiralRingMod::Sine); break;
-     case 1: ring.setWaveform (SpiralRingMod::Triangle); break;
-     case 2: ring.setWaveform (SpiralRingMod::Square); break;
-     case 3: ring.setWaveform (SpiralRingMod::SquareSlopedEdges); break;
-     default: break;
-     }
-     }
-     */
-    
-    /*
-     const float thresh   = *apvts.getRawParameterValue ("compThresh");
-     const float ratio    = *apvts.getRawParameterValue ("compRatio");
-     const float attackMs = *apvts.getRawParameterValue ("compAttack");
-     const float relMs    = *apvts.getRawParameterValue ("compRelease");
-     const float makeUp   = *apvts.getRawParameterValue ("compMakeUp");
-     
-     comp.setThreshold(thresh);
-     comp.setRatio(ratio);
-     comp.setAttack(attackMs);
-     comp.setRelease(relMs);
-     comp.setMakeUpGain(makeUp);
-     */
-    
-    /*
-     const float thresh   = *apvts.getRawParameterValue ("expThresh");
-     const float ratio    = *apvts.getRawParameterValue ("expRatio");
-     const float attackMs = *apvts.getRawParameterValue ("expAttack");
-     const float relMs    = *apvts.getRawParameterValue ("expRelease");
-     const float floor    = *apvts.getRawParameterValue ("expFloor");
-     const float makeUp   = *apvts.getRawParameterValue ("expMakeUp");
-     
-     exp.setThreshold(thresh);
-     exp.setRatio(ratio);
-     exp.setAttack(attackMs);
-     exp.setRelease(relMs);
-     exp.setFloorGain(floor);
-     exp.setMakeUpGain(makeUp);
-     */
-    
-    /*
-     // Distortion
-     {
-     int   dtIndex   = (int) *apvts.getRawParameterValue ("distType");
-     float inputGain  =      *apvts.getRawParameterValue ("distInputGain");
-     float outputGain =      *apvts.getRawParameterValue ("distOutputGain");
-     
-     dist.setInputGainDb(inputGain);
-     dist.setOutputGainDb(outputGain);
-     switch (dtIndex)
-     {
-     case 0: dist.setDistortionType (SpiralDistortion::HardClipping); break;
-     case 1: dist.setDistortionType (SpiralDistortion::SoftClipping); break;
-     case 2: dist.setDistortionType (SpiralDistortion::SoftClippingExponential); break;
-     case 3: dist.setDistortionType (SpiralDistortion::FullWaveRectifier); break;
-     case 4: dist.setDistortionType (SpiralDistortion::HalfWaveRectifier); break;
-     default: break;
-     }
-     }
-     */
-     
-    
-    // Pitch Shift
-    float semitones = *apvts.getRawParameterValue ("pitchSemitones");
-    
-    float ratio = std::pow(2.0f, semitones / 12.0f);
-    
-    ratio = juce::jlimit(0.25f, 4.0f, ratio);
-    
-    pitch.setPitchShift(ratio);
-    
-    
     auto* left  = buffer.getWritePointer (0);
     auto* right = totalNumOutputChannels > 1 ? buffer.getWritePointer (1) : nullptr;
-    
-    
-    juce::HeapBlock<float> monoBuffer (numSamples);
-    for (int i = 0; i < numSamples; ++i)
-    {
-        float inL = left[i];
-        float inR = (right != nullptr ? right[i] : inL);
-        monoBuffer[i] = 0.5f * (inL + inR);
-    }
-    pushInputToScope  (monoBuffer.get(),  numSamples);
-    
-    pitch.processBlock(monoBuffer.get(), (unsigned int) numSamples);
-    //whisper.processBlock(monoBuffer.get(), (unsigned int) numSamples);
-    //robot.processBlock(monoBuffer.get(), (unsigned int) numSamples);
-    
-    for (int i = 0; i < numSamples; ++i)
-    {
-        float y = monoBuffer[i];
-
-        left[i] = y;
-        if (right != nullptr)
-            right[i] = y;
-    }
-     
-
     /*
+    float wipeVal = apvts.getRawParameterValue ("randcomb_wipe")->load();
+    randComb.setWipe (wipeVal);
+    
+    bool triggerVal = apvts.getRawParameterValue ("randcomb_trigger")->load() > 0.5f;
+    if (triggerVal && !lastTriggerState)
+        randComb.trigger();
+    lastTriggerState = triggerVal;
+    
     juce::HeapBlock<float> inputMono (numSamples);
     juce::HeapBlock<float> outputMono (numSamples);
     
     for (int i = 0; i < numSamples; ++i)
     {
-    float inL = left[i];
-    float inR = (right != nullptr ? right[i] : inL);
+        float inL = left[i];
+        float inR = (right != nullptr ? right[i] : inL);
      
-    const float monoIn = 0.5f * (inL + inR);
+        const float monoIn = 0.5f * (inL + inR);
      
-    inputMono[i] = monoIn;
-    */
-    /*
-    // Tremolo
-    inL = trem.processSample (inL);
-    inR = trem.processSample (inR);
-    */
+        inputMono[i] = monoIn;
+    }
     
-    /*
-    // Ring Mod
-    inL = ring.processSample (inL);
-    inR = ring.processSample (inR);
-    */
+    //rvb.processBlock(inputMono.getData(), outputMono.getData(), numSamples);
+    randComb.processBlock (inputMono.getData(), numSamples);
+        
+    const float dryWet = 0.0f;
+    for (int i = 0; i < numSamples; i++)
+    {
+        float dry = inputMono[i];
+        float wet = outputMono[i];
+        float y   = (1.0f - dryWet) * dry + dryWet * wet;
+        
+        left[i] = y;
+        if (right != nullptr)
+            right[i] = y;
+    }
+     */
+    float wipeVal   = apvts.getRawParameterValue ("randwipe_wipe")->load();
+    bool triggerVal = apvts.getRawParameterValue ("randwipe_trigger")->load() > 0.5f;
+
+    randWipe.setWipe (wipeVal);
+
+    if (triggerVal && !lastTriggerState)
+        randWipe.trigger();
+    lastTriggerState = triggerVal;
+
+    juce::HeapBlock<float> sourceA (numSamples);
+    for (int i = 0; i < numSamples; ++i)
+    {
+        float inL = left[i];
+        float inR = (right != nullptr) ? right[i] : inL;
+        sourceA[i] = 0.5f * (inL + inR);
+    }
+
+    juce::HeapBlock<float> sourceB (numSamples);
+    const int bLen = sourceBBuffer.getNumSamples();
+    for (int i = 0; i < numSamples; ++i)
+    {
+        sourceB[i] = (bLen > 0) ? sourceBBuffer.getSample (0, sourceBReadPos) : 0.0f;
+        if (bLen > 0 && ++sourceBReadPos >= bLen)
+            sourceBReadPos = 0;
+    }
     
-    /*
-    // Compressor gain
-    const float gComp = comp.computeGain (monoIn);
-    float postCompL = inL * gComp;
-    float postCompR = inR * gComp;
-    */
+    randWipe.processBSource (sourceB.getData(), numSamples);
+    randWipe.processBlock   (sourceA.getData(), numSamples);
     
-    /*
-    // Expander gain
-    const float gExp = exp.computeGain (monoIn);
-    float postExpL = inL * gExp;
-    float postExpR = inR * gExp;
-    */
+    for (int i = 0; i < numSamples; ++i)
+    {
+        left[i] = sourceA[i];
+        if (right != nullptr)
+            right[i] = sourceA[i];
+    }
     
-    /*
-    // Distortion
-    inL = dist.processSample (inL);
-    inR = dist.processSample (inR);
-    
-    const float outL = inL;
-    const float outR = (right != nullptr ? inR : outL);
-    
-    left[i] = outL;
-    if (right != nullptr)
-        right[i] = outR;
-    
-    outputMono[i] = 0.5f * (outL + outR);
-    */
-    //}
-    
-    
-    pushOutputToScope (monoBuffer.get(), numSamples);
+    //pushInputToScope(inputMono.get(), numSamples);
+    //pushOutputToScope (outputMono.get(), numSamples);
 }
 
 //==============================================================================

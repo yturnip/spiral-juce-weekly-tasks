@@ -4,6 +4,11 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="hliwcb" name="SpiralLabDSP">
     <GROUP id="{90535237-048C-6F8F-2296-75866541C632}" name="dsp">
+      <FILE id="htjIZ1" name="SpiralConvolutionReverb.h" compile="0" resource="0"
+            file="Source/dsp/SpiralConvolutionReverb.h"/>
+      <FILE id="nzjz3P" name="SpiralAllpassSchroeder.h" compile="0" resource="0"
+            file="Source/dsp/SpiralAllpassSchroeder.h"/>
+      <FILE id="RFC10C" name="SpiralComb.h" compile="0" resource="0" file="Source/dsp/SpiralComb.h"/>
       <FILE id="OVFGwB" name="SpiralPhaseVocoder.h" compile="0" resource="0"
             file="Source/dsp/SpiralPhaseVocoder.h"/>
       <FILE id="wvpYxz" name="SpiralDistortion.h" compile="0" resource="0"
@@ -24,6 +29,26 @@
       <FILE id="MN8hvw" name="SpiralWahWah.h" compile="0" resource="0" file="Source/dsp/SpiralWahWah.h"/>
     </GROUP>
     <GROUP id="{3234F358-E00F-93A6-BC28-44E85781E8AC}" name="Source">
+      <GROUP id="{F4A86F37-84AC-4BCE-2C17-7510178E3344}" name="small-room-ir-pack">
+        <FILE id="r6dupK" name="_readme_and_license.txt" compile="0" resource="1"
+              file="Source/small-room-ir-pack/_readme_and_license.txt"/>
+        <FILE id="xAYOU0" name="252847__kijjaz__20141025-kijjaz-ir-new-office-01.aiff"
+              compile="0" resource="1" file="Source/small-room-ir-pack/252847__kijjaz__20141025-kijjaz-ir-new-office-01.aiff"/>
+        <FILE id="H4kHd6" name="818241__thesummerblues1984__basement-bathroom-impulse-response.wav"
+              compile="0" resource="1" file="Source/small-room-ir-pack/818241__thesummerblues1984__basement-bathroom-impulse-response.wav"/>
+        <FILE id="fRTaY0" name="818242__thesummerblues1984__garage-bathroom-impulse-response.wav"
+              compile="0" resource="1" file="Source/small-room-ir-pack/818242__thesummerblues1984__garage-bathroom-impulse-response.wav"/>
+        <FILE id="NEf8qo" name="818243__thesummerblues1984__bathroom-impulse-response-2.wav"
+              compile="0" resource="1" file="Source/small-room-ir-pack/818243__thesummerblues1984__bathroom-impulse-response-2.wav"/>
+        <FILE id="xjw9pt" name="818244__thesummerblues1984__bathroom-impulse-response-1.wav"
+              compile="0" resource="1" file="Source/small-room-ir-pack/818244__thesummerblues1984__bathroom-impulse-response-1.wav"/>
+        <FILE id="RpWmdu" name="818245__thesummerblues1984__upstairs-bathroom-impulse-response.wav"
+              compile="0" resource="1" file="Source/small-room-ir-pack/818245__thesummerblues1984__upstairs-bathroom-impulse-response.wav"/>
+        <FILE id="U1XWw7" name="818246__thesummerblues1984__stairwell-impulse-response.wav"
+              compile="0" resource="1" file="Source/small-room-ir-pack/818246__thesummerblues1984__stairwell-impulse-response.wav"/>
+        <FILE id="kV3qkQ" name="843278__modusmogulus__balloon-pop-in-a-youth-club-space-koskikeskus-nuorisotila-kolo-ir-impulse-response-192khz-32fp.wav"
+              compile="0" resource="1" file="Source/small-room-ir-pack/843278__modusmogulus__balloon-pop-in-a-youth-club-space-koskikeskus-nuorisotila-kolo-ir-impulse-response-192khz-32fp.wav"/>
+      </GROUP>
       <FILE id="ZvgcIW" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="Yzm2JL" name="PluginProcessor.h" compile="0" resource="0"

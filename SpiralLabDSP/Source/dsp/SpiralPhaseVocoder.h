@@ -292,3 +292,123 @@ protected:
     
     float pitchShift    = 1.0f;
 };
+
+class SpiralRandComb : public SpiralPhaseVocoder
+{
+public:
+    void setWipe (float w)      { wipe = juce::jlimit (0.0f, 1.0f, w); }
+    
+    void trigger()
+    {
+        const int numBins = (int) fftSize / 2 + 1;
+        binOrder.resize (numBins);
+        std::iota(binOrder.begin(), binOrder.end(), 0);
+        for (int i = numBins - 1; i > 0; --i)
+        {
+            int j = rng.nextInt (i + 1);
+            std::swap (binOrder[i], binOrder[j]);
+        }
+    }
+    
+protected:
+    void modification() override
+    {
+        const int numBins = (int) fftSize / 2 + 1;
+        
+        if ((int) binOrder.size() != numBins)
+            trigger();
+        
+        const int binsToZero = (int) std::floor (wipe * (float) numBins);
+        
+        for (int i = 0; i < binsToZero; ++i)
+        {
+            int bin = binOrder[i];
+            frequencyDomainBuffer[bin].real(0.0f);
+            frequencyDomainBuffer[bin].imag(0.0f);
+            
+            if (bin > 0 && bin < (int) fftSize / 2)
+            {
+                frequencyDomainBuffer[fftSize - bin].real(0.0f);
+                frequencyDomainBuffer[fftSize - bin].imag(0.0f);
+            }
+        }
+    }
+    
+private:
+    float wipe = 0.0f;
+    std::vector<int> binOrder;
+    juce::Random rng;
+};
+
+class SpiralRandWipe : public SpiralPhaseVocoder
+{
+public:
+    void setWipe (float w)      { wipe = juce::jlimit(0.0f, 1.0f, w); }
+    
+    void processBSource (float* audioData, unsigned int numSamples)
+    {
+        bReverb.processBlock (audioData, numSamples);
+    }
+    
+    void prepareB (unsigned int fftSizeIn, unsigned int hopSizeIn)
+    {
+        bReverb.setSampleRate (sampleRate);
+        bReverb.prepare (fftSizeIn, hopSizeIn);
+        bFftSize = fftSizeIn;
+        bFreqBuffer.resize (fftSizeIn, {0.0f, 0.0f});
+    }
+    
+    void trigger()
+    {
+        const int numBins = (int) fftSize / 2 + 1;
+        binOrder.resize (numBins);
+        std::iota(binOrder.begin(), binOrder.end(), 0);
+        for (int i = numBins - 1; i > 0; --i)
+        {
+            int j = rng.nextInt (i + 1);
+            std::swap (binOrder[i], binOrder[j]);
+        }
+    }
+    
+    void setBFreqBuffer (const std::vector<juce::dsp::Complex<float>>& buf)
+    {
+        bFreqBuffer = buf;
+    }
+
+protected:
+    void modification() override
+    {
+        const int numBins = (int) fftSize / 2 + 1;
+        
+        if ((int) binOrder.size() != numBins)
+            trigger();
+
+        const int binsToCopy = (int) std::floor (wipe * (float) numBins);
+        
+        for (int i = 0; i < binsToCopy; ++i)
+        {
+            int bin = binOrder[i];
+
+            if (bin < (int) bFreqBuffer.size())
+            {
+                frequencyDomainBuffer[bin] = bFreqBuffer[bin];
+
+                if (bin > 0 && bin < (int) fftSize / 2)
+                {
+                    int mirror = (int) fftSize - bin;
+                    frequencyDomainBuffer[mirror].real ( bFreqBuffer[bin].real());
+                    frequencyDomainBuffer[mirror].imag (-bFreqBuffer[bin].imag());
+                }
+            }
+        }
+    }
+    
+private:
+    float wipe = 0.0f;
+    std::vector<int> binOrder;
+    juce::Random rng;
+    
+    SpiralPhaseVocoder bReverb;
+    unsigned int bFftSize = 1024;
+    std::vector<juce::dsp::Complex<float>> bFreqBuffer;
+};
